@@ -730,34 +730,69 @@ var Game = /** @class */ (function () {
     Game.prototype.get = function (row, column) {
         return this.findSpot(row, column).value;
     };
-    Game.prototype.associated = function (row, column) {
-        var spots = [];
+    Game.prototype.getAssociatedIndexes = function (row, column) {
+        var ids = [];
         if (row > 0 && column > 0) {
-            spots.push(this.findSpot(row - 1, column - 1));
+            ids.push(this.findIndex(row - 1, column - 1));
         }
         if (row > 0) {
-            spots.push(this.findSpot(row - 1, column));
+            ids.push(this.findIndex(row - 1, column));
         }
         if (row > 0 && column + 1 < this.width) {
-            spots.push(this.findSpot(row - 1, column + 1));
+            ids.push(this.findIndex(row - 1, column + 1));
         }
         if (column > 0) {
-            spots.push(this.findSpot(row, column - 1));
+            ids.push(this.findIndex(row, column - 1));
         }
-        spots.push(this.findSpot(row, column));
+        ids.push(this.findIndex(row, column));
         if (column + 1 < this.width) {
-            spots.push(this.findSpot(row, column + 1));
+            ids.push(this.findIndex(row, column + 1));
         }
         if (row + 1 < this.height && column > 0) {
-            spots.push(this.findSpot(row + 1, column - 1));
+            ids.push(this.findIndex(row + 1, column - 1));
         }
         if (row + 1 < this.height) {
-            spots.push(this.findSpot(row + 1, column));
+            ids.push(this.findIndex(row + 1, column));
         }
         if (row + 1 < this.height && column + 1 < this.width) {
-            spots.push(this.findSpot(row + 1, column + 1));
+            ids.push(this.findIndex(row + 1, column + 1));
         }
-        return spots;
+        return ids;
+    };
+    Game.prototype.getAssociatedUnknownIndexes = function (row, column) {
+        var _this = this;
+        return this.getAssociatedIndexes(row, column).filter(function (index) {
+            return _this.spots[index].filled === undefined;
+        });
+    };
+    Game.prototype.associated = function (row, column) {
+        var _this = this;
+        var ids = this.getAssociatedIndexes(row, column);
+        return ids.map(function (id) {
+            return _this.spots[id];
+        });
+    };
+    Game.prototype.currentState = function (spots) {
+        var result = {
+            filled: 0,
+            unfilled: 0,
+            unknown: 0,
+        };
+        spots.forEach(function (spot) {
+            if (spot.filled === true) {
+                result.filled++;
+            }
+            else if (spot.filled === false) {
+                result.unfilled++;
+            }
+            else {
+                result.unknown++;
+            }
+        });
+        return result;
+    };
+    Game.prototype.associatedState = function (row, column) {
+        return this.currentState(this.associated(row, column));
     };
     return Game;
 }());

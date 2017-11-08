@@ -159,4 +159,136 @@ describe("game", () => {
             ]);
         });
     });
+
+    describe("current state", () => {
+        it("should return the state of a set of spots", () => {
+            const spot1 = game.spots[0];
+            const spot2 = game.spots[1];
+            const spot3 = game.spots[2];
+            const spot4 = game.spots[3];
+            const spot5 = game.spots[4];
+            const spot6 = game.spots[5];
+            const spots = [
+                spot1, spot2, spot3, spot4, spot5, spot6,
+            ];
+            expect(game.currentState(spots)).toEqual({
+                filled: 0,
+                unfilled: 0,
+                unknown: 6,
+            });
+
+            spot1.filled = true;
+            expect(game.currentState(spots)).toEqual({
+                filled: 1,
+                unfilled: 0,
+                unknown: 5,
+            });
+
+            spot3.filled = false;
+            expect(game.currentState(spots)).toEqual({
+                filled: 1,
+                unfilled: 1,
+                unknown: 4,
+            });
+
+            spot2.filled = true;
+            expect(game.currentState(spots)).toEqual({
+                filled: 2,
+                unfilled: 1,
+                unknown: 3,
+            });
+        });
+    });
+
+    it("should return the state of associated cells", () => {
+        expect(game.associatedState(0, 0)).toEqual({
+            filled: 0,
+            unfilled: 0,
+            unknown: 4,
+        });
+        game.spots[0].filled = true;
+        game.spots[5].filled = true;
+        expect(game.associatedState(0, 0)).toEqual({
+            filled: 2,
+            unfilled: 0,
+            unknown: 2,
+        });
+    });
+
+    describe("associated ids", () => {
+        it("top", () => {
+            const spots = game.spots;
+            expect(game.getAssociatedIndexes(0, 2)).toEqual([
+                1, 2, 3, 6, 7, 8,
+            ]);
+        });
+
+        it("bottom", () => {
+            const spots = game.spots;
+            expect(game.getAssociatedIndexes(4, 2)).toEqual([
+                16, 17, 18, 21, 22, 23,
+            ]);
+        });
+
+        it("left", () => {
+            const spots = game.spots;
+            expect(game.getAssociatedIndexes(2, 0)).toEqual([
+                5, 6, 10, 11, 15, 16,
+            ]);
+        });
+
+        it("right", () => {
+            const spots = game.spots;
+            expect(game.getAssociatedIndexes(2, 4)).toEqual([
+                8, 9, 13, 14, 18, 19,
+            ]);
+        });
+
+        it("top left", () => {
+            const spots = game.spots;
+            expect(game.getAssociatedIndexes(0, 0)).toEqual([
+                0, 1, 5, 6,
+            ]);
+        });
+
+        it("top right", () => {
+            const spots = game.spots;
+            expect(game.getAssociatedIndexes(0, 4)).toEqual([
+                3, 4, 8, 9,
+            ]);
+        });
+
+        it("bottom left", () => {
+            const spots = game.spots;
+            expect(game.getAssociatedIndexes(4, 0)).toEqual([
+                15, 16, 20, 21,
+            ]);
+        });
+
+        it("bottom right", () => {
+            const spots = game.spots;
+            expect(game.getAssociatedIndexes(4, 4)).toEqual([
+                18, 19, 23, 24,
+            ]);
+        });
+
+        it("middle", () => {
+            const spots = game.spots;
+            expect(game.getAssociatedIndexes(2, 2)).toEqual([
+                6, 7, 8, 11, 12, 13, 16, 17, 18,
+            ]);
+        });
+    });
+
+    it("should return ids of unknown cells", () => {
+        const spots = game.spots;
+        expect(game.getAssociatedUnknownIndexes(2, 0)).toEqual([
+            5, 6, 10, 11, 15, 16,
+        ]);
+        spots[6].filled = true;
+        spots[11].filled = false;
+        expect(game.getAssociatedUnknownIndexes(2, 0)).toEqual([
+            5, 10, 15, 16,
+        ]);
+    });
 });

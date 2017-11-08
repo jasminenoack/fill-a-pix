@@ -33,36 +33,71 @@ export class Game {
         return this.findSpot(row, column).value;
     }
 
-    public associated(row: number, column: number) {
-        const spots = [];
+    public getAssociatedIndexes(row: number, column: number) {
+        const ids = [];
         if (row > 0 && column > 0) {
-            spots.push(this.findSpot(row - 1, column - 1));
+            ids.push(this.findIndex(row - 1, column - 1));
         }
         if (row > 0) {
-            spots.push(this.findSpot(row - 1, column));
+            ids.push(this.findIndex(row - 1, column));
         }
         if (row > 0 && column + 1 < this.width) {
-            spots.push(this.findSpot(row - 1, column + 1));
+            ids.push(this.findIndex(row - 1, column + 1));
         }
 
         if (column > 0) {
-            spots.push(this.findSpot(row, column - 1));
+            ids.push(this.findIndex(row, column - 1));
         }
-        spots.push(this.findSpot(row, column));
+        ids.push(this.findIndex(row, column));
         if (column + 1 < this.width) {
-            spots.push(this.findSpot(row, column + 1));
+            ids.push(this.findIndex(row, column + 1));
         }
 
         if (row + 1 < this.height && column > 0) {
-            spots.push(this.findSpot(row + 1, column - 1));
+            ids.push(this.findIndex(row + 1, column - 1));
         }
         if (row + 1 < this.height) {
-            spots.push(this.findSpot(row + 1, column));
+            ids.push(this.findIndex(row + 1, column));
         }
         if (row + 1 < this.height && column + 1 < this.width) {
-            spots.push(this.findSpot(row + 1, column + 1));
+            ids.push(this.findIndex(row + 1, column + 1));
         }
 
-        return spots;
+        return ids;
+    }
+
+    public getAssociatedUnknownIndexes(row: number, column: number) {
+        return this.getAssociatedIndexes(row, column).filter((index) => {
+            return this.spots[index].filled === undefined;
+        });
+    }
+
+    public associated(row: number, column: number) {
+        const ids = this.getAssociatedIndexes(row, column);
+        return ids.map((id) => {
+            return this.spots[id];
+        });
+    }
+
+    public currentState(spots: Spot[]) {
+        const result = {
+            filled: 0,
+            unfilled: 0,
+            unknown: 0,
+        };
+        spots.forEach((spot) => {
+            if (spot.filled === true) {
+                result.filled++;
+            } else if (spot.filled === false) {
+                result.unfilled++;
+            } else {
+                result.unknown++;
+            }
+        });
+        return result;
+    }
+
+    public associatedState(row: number, column: number) {
+        return this.currentState(this.associated(row, column));
     }
 }
