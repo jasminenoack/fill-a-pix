@@ -19,3 +19,19 @@
     border: 4px solid black;
     margin: 50px auto;
 }
+
+.active {
+    border: 5px solid yellow;
+}
+
+.related {
+    border: 5px solid lime;
+}
+
+.unfilled {
+    background: grey;
+}
+
+.filled {
+    background: blue;
+}

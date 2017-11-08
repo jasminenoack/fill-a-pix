@@ -27,6 +27,10 @@ export class Solve {
     public unfill: number[];
 
     constructor(public game: Game) {
+        this.init(game);
+    }
+
+    public init(game: Game) {
         this.coordinates = [];
         for (let row = 0; row < game.height; row++) {
             for (let column = 0; column < game.width; column++) {
@@ -61,6 +65,10 @@ export class Solve {
             delete this.row;
             delete this.column;
             this.steps = STEPS.slice();
+            // just loop for now.
+            if (!this.coordinates.length) {
+                this.init(this.game);
+            }
         }
     }
 
@@ -83,6 +91,7 @@ export class Solve {
     public fillAllStep() {
         this.desc = "Fill all step: ";
         if (this.phase === checkAllPhases.findAssociatedState) {
+            [this.row, this.column] = this.coordinates.shift();
             this.findAssociatedFillState();
         } else if (this.phase === checkAllPhases.findValues) {
             this.checkAllFill();
@@ -94,8 +103,6 @@ export class Solve {
     }
 
     public findAssociatedFillState(checkAllFill: boolean = true) {
-        [this.row, this.column] = this.coordinates.shift();
-
         this.data.associatedState = this.game.associatedState(this.row, this.column);
         this.active = this.game.findIndex(this.row, this.column);
         this.related = this.game.getAssociatedIndexes(this.row, this.column).filter(

@@ -98,6 +98,8 @@ describe("solve", () => {
     describe("unfill all", () => {
         it("should take find associated state and describe it", () => {
             solve.steps = ["checkIfUnfillAll"];
+            solve.row = 0;
+            solve.column = 1;
             solve.takeStep();
             expect(solve.desc).toEqual(
                 "Unfill all step: For cell 0, 1. There are 0 filled cells, 0 unfilled cells, and 6 unknown cells.",
@@ -115,6 +117,8 @@ describe("solve", () => {
             game.spots[6].filled = true;
             game.spots[7].filled = false;
             solve.steps = ["checkIfUnfillAll"];
+            solve.row = 0;
+            solve.column = 1;
             solve.takeStep();
             expect(solve.desc).toEqual(
                 "Unfill all step: Skipping cell 0, 1. No Unknown cells.",
@@ -132,6 +136,8 @@ describe("solve", () => {
             game.spots[5].filled = true;
             game.spots[6].filled = true;
             solve.steps = ["checkIfUnfillAll"];
+            solve.row = 0;
+            solve.column = 1;
             solve.takeStep();
             solve.takeStep();
             expect(solve.desc).toEqual(
@@ -148,6 +154,8 @@ describe("solve", () => {
             game.spots[0].filled = true;
             game.spots[1].filled = true;
             solve.steps = ["checkIfUnfillAll"];
+            solve.row = 0;
+            solve.column = 1;
             solve.takeStep();
             solve.takeStep();
             expect(solve.desc).toEqual(
@@ -163,6 +171,8 @@ describe("solve", () => {
             game.spots[5].filled = true;
             game.spots[6].filled = true;
             solve.steps = ["checkIfUnfillAll"];
+            solve.row = 0;
+            solve.column = 1;
             solve.takeStep();
             solve.takeStep();
             solve.takeStep();
@@ -190,6 +200,8 @@ describe("solve", () => {
         expect(solve.row).toEqual(0);
         expect(solve.column).toEqual(1);
         solve.takeStep();
+        expect(solve.row).toEqual(0);
+        expect(solve.column).toEqual(1);
         solve.takeStep();
         expect(solve.phase).toEqual(0);
         expect(solve.steps).toEqual(["checkIfFillAll", "checkIfUnfillAll"]);

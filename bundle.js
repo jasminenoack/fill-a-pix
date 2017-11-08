@@ -80,34 +80,69 @@ module.exports = __webpack_require__(2);
 Object.defineProperty(exports, "__esModule", { value: true });
 var game_1 = __webpack_require__(7);
 var puzzles = __webpack_require__(9);
+var solve_1 = __webpack_require__(10);
 var SPOT_DIMENSION = 40;
-function drawBoard(wrapper, currentGame) {
+function drawBoard(wrapper, currentGame, currentSolve) {
     wrapper.style.width = currentGame.width * SPOT_DIMENSION + "px";
+    var activeIndex = solve.active;
+    var related = solve.related;
     for (var row = 0; row < currentGame.height; row++) {
         var rowDiv = document.createElement("div");
         rowDiv.classList.add("clear");
         rowDiv.classList.add("row");
         rowDiv.style.width = currentGame.width * SPOT_DIMENSION + "px";
         for (var column = 0; column < currentGame.width; column++) {
+            var index = game.findIndex(row, column);
             var square = document.createElement("div");
             square.classList.add("square");
+            square.style.lineHeight = SPOT_DIMENSION - 2 + "px";
+            if (activeIndex === index) {
+                square.classList.add("active");
+                square.style.lineHeight = SPOT_DIMENSION - 10 + "px";
+            }
+            else if (related && related.indexOf(index) !== -1) {
+                square.classList.add("related");
+                square.style.lineHeight = SPOT_DIMENSION - 10 + "px";
+            }
+            var spot = game.findSpot(row, column);
+            if (spot.filled === true) {
+                square.classList.add("filled");
+            }
+            else if (spot.filled === false) {
+                square.classList.add("unfilled");
+            }
             rowDiv.appendChild(square);
             var value = currentGame.get(row, column);
             square.innerText = value !== undefined ? value + "" : "";
             square.style.width = SPOT_DIMENSION + "px";
             square.style.height = SPOT_DIMENSION + "px";
-            square.style.lineHeight = SPOT_DIMENSION - 2 + "px";
         }
         wrapper.appendChild(rowDiv);
     }
 }
 var puzzle = document.getElementById("puzzle");
+var start = document.getElementById("start");
+var step = document.getElementById("step");
 var game = new game_1.Game(puzzles.ultraEasy1);
+var solve = new solve_1.Solve(game);
 var boardWrapper = document.createElement("div");
 boardWrapper.classList.add("wrapper");
-drawBoard(boardWrapper, game);
+drawBoard(boardWrapper, game, solve);
 puzzle.innerHTML = "";
 puzzle.appendChild(boardWrapper);
+start.addEventListener("click", function () {
+    function makeStep() {
+        solve.takeStep();
+        step.innerText = solve.desc;
+        var wrapper = document.createElement("div");
+        wrapper.classList.add("wrapper");
+        drawBoard(wrapper, game, solve);
+        puzzle.innerHTML = "";
+        puzzle.appendChild(wrapper);
+    }
+    makeStep();
+    setInterval(makeStep, 300);
+});
 
 
 /***/ }),
@@ -150,7 +185,7 @@ exports = module.exports = __webpack_require__(4)(undefined);
 
 
 // module
-exports.push([module.i, ".clear:after {\n  display: block;\n  content: \"\";\n  clear: both; }\n\n.square {\n  border: 1px solid black;\n  float: left;\n  box-sizing: border-box;\n  text-align: center;\n  font-size: 30px; }\n\n.wrapper {\n  border: 4px solid black;\n  margin: 50px auto; }\n", ""]);
+exports.push([module.i, ".clear:after {\n  display: block;\n  content: \"\";\n  clear: both; }\n\n.square {\n  border: 1px solid black;\n  float: left;\n  box-sizing: border-box;\n  text-align: center;\n  font-size: 30px; }\n\n.wrapper {\n  border: 4px solid black;\n  margin: 50px auto; }\n\n.active {\n  border: 5px solid yellow; }\n\n.related {\n  border: 5px solid lime; }\n\n.unfilled {\n  background: grey; }\n\n.filled {\n  background: blue; }\n", ""]);
 
 // exports
 
@@ -843,6 +878,186 @@ exports.ultraEasy1 = {
     ],
     width: 5,
 };
+
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var steps;
+(function (steps) {
+    steps["checkIfFillAll"] = "checkIfFillAll";
+    steps["checkIfUnFillAll"] = "checkIfUnfillAll";
+})(steps || (steps = {}));
+var checkAllPhases;
+(function (checkAllPhases) {
+    checkAllPhases[checkAllPhases["findAssociatedState"] = 0] = "findAssociatedState";
+    checkAllPhases[checkAllPhases["findValues"] = 1] = "findValues";
+    checkAllPhases[checkAllPhases["editGame"] = 2] = "editGame";
+})(checkAllPhases || (checkAllPhases = {}));
+var STEPS = [steps.checkIfFillAll, steps.checkIfUnFillAll];
+var Solve = /** @class */ (function () {
+    function Solve(game) {
+        this.game = game;
+        this.phase = 0;
+        this.desc = "";
+        this.data = {};
+        this.init(game);
+    }
+    Solve.prototype.init = function (game) {
+        this.coordinates = [];
+        for (var row = 0; row < game.height; row++) {
+            for (var column = 0; column < game.width; column++) {
+                if (game.get(row, column) !== undefined) {
+                    this.coordinates.push([row, column]);
+                }
+            }
+        }
+        this.steps = STEPS.slice();
+    };
+    Solve.prototype.takeStep = function () {
+        this.desc = "";
+        var step = this.steps[0];
+        if (step === steps.checkIfFillAll) {
+            this.fillAllStep();
+        }
+        else if (step === steps.checkIfUnFillAll) {
+            this.unfillAllStep();
+        }
+    };
+    Solve.prototype.nextStep = function () {
+        this.phase = 0;
+        this.data = {};
+        delete this.active;
+        this.related = [];
+        this.fill = [];
+        this.unfill = [];
+        this.steps.shift();
+        if (!this.steps.length) {
+            delete this.row;
+            delete this.column;
+            this.steps = STEPS.slice();
+            // just loop for now.
+            if (!this.coordinates.length) {
+                this.init(this.game);
+            }
+        }
+    };
+    Solve.prototype.fillCells = function () {
+        var _this = this;
+        this.fill.forEach(function (index) {
+            _this.game.spots[index].filled = true;
+        });
+    };
+    Solve.prototype.unfillCells = function () {
+        var _this = this;
+        this.unfill.forEach(function (index) {
+            _this.game.spots[index].filled = false;
+        });
+    };
+    /**********************************************************
+     * Fill All
+     **********************************************************/
+    Solve.prototype.fillAllStep = function () {
+        this.desc = "Fill all step: ";
+        if (this.phase === checkAllPhases.findAssociatedState) {
+            _a = this.coordinates.shift(), this.row = _a[0], this.column = _a[1];
+            this.findAssociatedFillState();
+        }
+        else if (this.phase === checkAllPhases.findValues) {
+            this.checkAllFill();
+        }
+        else {
+            this.desc += "Filled cells " + this.fill.join(", ") + ".";
+            this.fillCells();
+            this.nextStep();
+        }
+        var _a;
+    };
+    Solve.prototype.findAssociatedFillState = function (checkAllFill) {
+        var _this = this;
+        if (checkAllFill === void 0) { checkAllFill = true; }
+        this.data.associatedState = this.game.associatedState(this.row, this.column);
+        this.active = this.game.findIndex(this.row, this.column);
+        this.related = this.game.getAssociatedIndexes(this.row, this.column).filter(function (id) { return id !== _this.active; });
+        if (checkAllFill && this.data.associatedState.filled === this.game.get(this.row, this.column)) {
+            this.desc += "Skipping cell " + this.row + ", " + this.column + ". " +
+                "Already filled.";
+            this.nextStep();
+        }
+        else if (!this.data.associatedState.unknown) {
+            this.desc += "Skipping cell " + this.row + ", " + this.column + ". " +
+                "No Unknown cells.";
+            this.nextStep();
+        }
+        else {
+            this.desc += "For cell " + this.row + ", " + this.column + "." +
+                (" There are " + this.data.associatedState.filled + " filled cells, ") +
+                (this.data.associatedState.unfilled + " unfilled cells, ") +
+                ("and " + this.data.associatedState.unknown + " unknown cells.");
+            this.phase++;
+        }
+    };
+    Solve.prototype.checkAllFill = function () {
+        var state = this.data.associatedState;
+        var filled = state.filled;
+        var totalAvailable = state.unknown + state.filled;
+        var value = this.game.get(this.row, this.column);
+        if (totalAvailable === value) {
+            this.desc += "For cell " + this.row + ", " + this.column + ". " +
+                ("The number of filled + unknown cells(" + totalAvailable + ")") +
+                (" equals the value(" + value + ")") +
+                ", so we can fill all unknown cells.";
+            this.fill = this.game.getAssociatedUnknownIndexes(this.row, this.column);
+            this.phase++;
+        }
+        else {
+            this.desc += "For cell " + this.row + ", " + this.column + ". " +
+                ("The number of filled + unknown cells(" + totalAvailable + ")") +
+                (" is not equal to the value(" + value + ").");
+            this.nextStep();
+        }
+    };
+    /**********************************************************
+     * Unfill All
+     **********************************************************/
+    Solve.prototype.unfillAllStep = function () {
+        this.desc = "Unfill all step: ";
+        if (this.phase === checkAllPhases.findAssociatedState) {
+            this.findAssociatedFillState(false);
+        }
+        else if (this.phase === checkAllPhases.findValues) {
+            this.checkAllUnfill();
+        }
+        else {
+            this.desc += "Unfilled cells " + this.unfill.join(", ") + ".";
+            this.unfillCells();
+            this.nextStep();
+        }
+    };
+    Solve.prototype.checkAllUnfill = function () {
+        var state = this.data.associatedState;
+        var filled = state.filled;
+        var value = this.game.get(this.row, this.column);
+        if (filled === value) {
+            this.desc += "For cell " + this.row + ", " + this.column + ". " +
+                "All cells filled. Unfilling unknown cells.";
+            this.unfill = this.game.getAssociatedUnknownIndexes(this.row, this.column);
+            this.phase++;
+        }
+        else {
+            this.desc += "For cell " + this.row + ", " + this.column + ". " +
+                ("The number of filled cells(" + filled + ")") +
+                (" is not equal to the value(" + value + ").");
+            this.nextStep();
+        }
+    };
+    return Solve;
+}());
+exports.Solve = Solve;
 
 
 /***/ })
