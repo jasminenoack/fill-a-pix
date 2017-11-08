@@ -80,17 +80,23 @@ module.exports = __webpack_require__(2);
 Object.defineProperty(exports, "__esModule", { value: true });
 var game_1 = __webpack_require__(7);
 var puzzles = __webpack_require__(9);
+var SPOT_DIMENSION = 40;
 function drawBoard(wrapper, currentGame) {
+    wrapper.style.width = currentGame.width * SPOT_DIMENSION + "px";
     for (var row = 0; row < currentGame.height; row++) {
         var rowDiv = document.createElement("div");
         rowDiv.classList.add("clear");
         rowDiv.classList.add("row");
+        rowDiv.style.width = currentGame.width * SPOT_DIMENSION + "px";
         for (var column = 0; column < currentGame.width; column++) {
             var square = document.createElement("div");
             square.classList.add("square");
             rowDiv.appendChild(square);
             var value = currentGame.get(row, column);
-            square.innerText = value ? value + "" : "";
+            square.innerText = value !== undefined ? value + "" : "";
+            square.style.width = SPOT_DIMENSION + "px";
+            square.style.height = SPOT_DIMENSION + "px";
+            square.style.lineHeight = SPOT_DIMENSION - 2 + "px";
         }
         wrapper.appendChild(rowDiv);
     }
@@ -144,7 +150,7 @@ exports = module.exports = __webpack_require__(4)(undefined);
 
 
 // module
-exports.push([module.i, "", ""]);
+exports.push([module.i, ".clear:after {\n  display: block;\n  content: \"\";\n  clear: both; }\n\n.square {\n  border: 1px solid purple;\n  float: left;\n  box-sizing: border-box;\n  text-align: center;\n  font-size: 30px; }\n\n.wrapper {\n  border: 1px solid blue;\n  margin: 50px auto; }\n", ""]);
 
 // exports
 

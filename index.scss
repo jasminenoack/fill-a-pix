@@ -1,0 +1,21 @@
+.clear:after {
+    display: block;
+    content: "";
+    clear: both;
+}
+
+.row {
+}
+
+.square {
+    border: 1px solid purple;
+    float:left;
+    box-sizing: border-box;
+    text-align: center;
+    font-size: 30px;
+}
+
+.wrapper {
+    border: 1px solid blue;
+    margin: 50px auto;
+}
