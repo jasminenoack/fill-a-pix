@@ -1,0 +1,43 @@
+{
+  "name": "",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --watch",
+    "test": "karma start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jasminenoack/tic-tac-logic.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jasminenoack/tic-tac-logic/issues"
+  },
+  "homepage": "https://github.com/jasminenoack/tic-tac-logic#readme",
+  "devDependencies": {
+    "@types/jasmine": "^2.6.0",
+    "es6-promise": "^4.1.1",
+    "jasmine": "^2.8.0",
+    "jquery": "^3.2.1",
+    "karma": "^1.7.1",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-jasmine": "^1.1.0",
+    "karma-spec-reporter": "0.0.31",
+    "karma-typescript": "^3.0.6",
+    "karma-webpack": "^2.0.4",
+    "lodash": "^4.17.4",
+    "node-sass": "^4.5.3",
+    "ts-loader": "^2.3.7",
+    "tslint": "^5.7.0",
+    "typescript": "^2.5.2"
+  },
+  "dependencies": {
+    "css-loader": "^0.28.7",
+    "sass-loader": "^6.0.6",
+    "style-loader": "^0.19.0",
+    "webpack": "^3.6.0"
+  }
+}
