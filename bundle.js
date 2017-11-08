@@ -73,9 +73,35 @@ module.exports = __webpack_require__(2);
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-console.log("Hello World");
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var game_1 = __webpack_require__(7);
+var puzzles = __webpack_require__(9);
+function drawBoard(wrapper, currentGame) {
+    for (var row = 0; row < currentGame.height; row++) {
+        var rowDiv = document.createElement("div");
+        rowDiv.classList.add("clear");
+        rowDiv.classList.add("row");
+        for (var column = 0; column < currentGame.width; column++) {
+            var square = document.createElement("div");
+            square.classList.add("square");
+            rowDiv.appendChild(square);
+            var value = currentGame.get(row, column);
+            square.innerText = value ? value + "" : "";
+        }
+        wrapper.appendChild(rowDiv);
+    }
+}
+var puzzle = document.getElementById("puzzle");
+var game = new game_1.Game(puzzles.ultraEasy1);
+var boardWrapper = document.createElement("div");
+boardWrapper.classList.add("wrapper");
+drawBoard(boardWrapper, game);
+puzzle.innerHTML = "";
+puzzle.appendChild(boardWrapper);
 
 
 /***/ }),
@@ -669,6 +695,71 @@ module.exports = function (css) {
 
 	// send back the fixed css
 	return fixedCss;
+};
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var spot_1 = __webpack_require__(8);
+var Game = /** @class */ (function () {
+    function Game(config) {
+        this.height = config.height;
+        this.width = config.width;
+        this.spots = [];
+        for (var i = 0; i < this.height * this.width; i++) {
+            this.spots.push(new spot_1.Spot(config.values[i]));
+        }
+    }
+    Game.prototype.get = function (row, column) {
+        return this.spots[row * this.width + column].value;
+    };
+    return Game;
+}());
+exports.Game = Game;
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var Spot = /** @class */ (function () {
+    function Spot(value) {
+        this.value = value;
+    }
+    return Spot;
+}());
+exports.Spot = Spot;
+
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ultraEasy1 = {
+    height: 5,
+    values: [
+        ,
+        5, 4, , ,
+        ,
+        , , , 3,
+        ,
+        5, 6, , 5,
+        0, 2, 5, , 5,
+        ,
+        , , , ,
+    ],
+    width: 5,
 };
 
 

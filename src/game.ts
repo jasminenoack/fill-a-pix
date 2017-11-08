@@ -20,4 +20,8 @@ export class Game {
             this.spots.push(new Spot(config.values[i]));
         }
     }
+
+    public get(row: number, column: number) {
+        return this.spots[row * this.width + column].value;
+    }
 }
