@@ -291,4 +291,12 @@ describe("game", () => {
             5, 10, 15, 16,
         ]);
     });
+
+    it("should return all unknown", () => {
+        const spots = game.spots;
+        expect(game.getUnknown().length).toEqual(25);
+        spots[6].filled = true;
+        spots[11].filled = false;
+        expect(game.getUnknown().length).toEqual(23);
+    });
 });

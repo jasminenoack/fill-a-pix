@@ -100,4 +100,14 @@ export class Game {
     public associatedState(row: number, column: number) {
         return this.currentState(this.associated(row, column));
     }
+
+    public getUnknown() {
+        return this.spots.filter((spot) => {
+            return spot.filled === undefined;
+        });
+    }
+
+    public done() {
+        return !this.getUnknown().length;
+    }
 }

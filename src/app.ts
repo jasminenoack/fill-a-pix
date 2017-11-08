@@ -6,7 +6,10 @@ const SPOT_DIMENSION = 40;
 
 function drawBoard(wrapper: HTMLElement, currentGame: Game, currentSolve: Solve) {
     wrapper.style.width = currentGame.width * SPOT_DIMENSION + "px";
-    const activeIndex = solve.active;
+    const activeIndex = solve.active || (
+        solve.row !== undefined && solve.column !== undefined &&
+        game.findIndex(solve.row, solve.column)
+    );
     const related = solve.related;
     for (let row = 0; row < currentGame.height; row++) {
         const rowDiv = document.createElement("div");
@@ -63,7 +66,10 @@ start.addEventListener("click", () => {
         drawBoard(wrapper, game, solve);
         puzzle.innerHTML = "";
         puzzle.appendChild(wrapper);
+        if (game.done()) {
+            clearInterval(interval);
+        }
     }
     makeStep();
-    setInterval(makeStep, 300);
+    const interval = setInterval(makeStep, 300);
 });

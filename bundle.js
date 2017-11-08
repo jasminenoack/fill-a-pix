@@ -84,7 +84,8 @@ var solve_1 = __webpack_require__(10);
 var SPOT_DIMENSION = 40;
 function drawBoard(wrapper, currentGame, currentSolve) {
     wrapper.style.width = currentGame.width * SPOT_DIMENSION + "px";
-    var activeIndex = solve.active;
+    var activeIndex = solve.active || (solve.row !== undefined && solve.column !== undefined &&
+        game.findIndex(solve.row, solve.column));
     var related = solve.related;
     for (var row = 0; row < currentGame.height; row++) {
         var rowDiv = document.createElement("div");
@@ -139,9 +140,12 @@ start.addEventListener("click", function () {
         drawBoard(wrapper, game, solve);
         puzzle.innerHTML = "";
         puzzle.appendChild(wrapper);
+        if (game.done()) {
+            clearInterval(interval);
+        }
     }
     makeStep();
-    setInterval(makeStep, 300);
+    var interval = setInterval(makeStep, 300);
 });
 
 
@@ -829,6 +833,14 @@ var Game = /** @class */ (function () {
     Game.prototype.associatedState = function (row, column) {
         return this.currentState(this.associated(row, column));
     };
+    Game.prototype.getUnknown = function () {
+        return this.spots.filter(function (spot) {
+            return spot.filled === undefined;
+        });
+    };
+    Game.prototype.done = function () {
+        return !this.getUnknown().length;
+    };
     return Game;
 }());
 exports.Game = Game;
@@ -911,7 +923,7 @@ var Solve = /** @class */ (function () {
         this.coordinates = [];
         for (var row = 0; row < game.height; row++) {
             for (var column = 0; column < game.width; column++) {
-                if (game.get(row, column) !== undefined) {
+                if (game.get(row, column) !== undefined && game.getAssociatedUnknownIndexes(row, column).length) {
                     this.coordinates.push([row, column]);
                 }
             }

@@ -34,7 +34,7 @@ export class Solve {
         this.coordinates = [];
         for (let row = 0; row < game.height; row++) {
             for (let column = 0; column < game.width; column++) {
-                if (game.get(row, column) !== undefined) {
+                if (game.get(row, column) !== undefined && game.getAssociatedUnknownIndexes(row, column).length) {
                     this.coordinates.push([row, column]);
                 }
             }
