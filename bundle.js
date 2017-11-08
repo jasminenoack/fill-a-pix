@@ -150,7 +150,7 @@ exports = module.exports = __webpack_require__(4)(undefined);
 
 
 // module
-exports.push([module.i, ".clear:after {\n  display: block;\n  content: \"\";\n  clear: both; }\n\n.square {\n  border: 1px solid purple;\n  float: left;\n  box-sizing: border-box;\n  text-align: center;\n  font-size: 30px; }\n\n.wrapper {\n  border: 1px solid blue;\n  margin: 50px auto; }\n", ""]);
+exports.push([module.i, ".clear:after {\n  display: block;\n  content: \"\";\n  clear: both; }\n\n.square {\n  border: 1px solid black;\n  float: left;\n  box-sizing: border-box;\n  text-align: center;\n  font-size: 30px; }\n\n.wrapper {\n  border: 4px solid black;\n  margin: 50px auto; }\n", ""]);
 
 // exports
 
@@ -721,8 +721,43 @@ var Game = /** @class */ (function () {
             this.spots.push(new spot_1.Spot(config.values[i]));
         }
     }
+    Game.prototype.findIndex = function (row, column) {
+        return row * this.width + column;
+    };
+    Game.prototype.findSpot = function (row, column) {
+        return this.spots[this.findIndex(row, column)];
+    };
     Game.prototype.get = function (row, column) {
-        return this.spots[row * this.width + column].value;
+        return this.findSpot(row, column).value;
+    };
+    Game.prototype.associated = function (row, column) {
+        var spots = [];
+        if (row > 0 && column > 0) {
+            spots.push(this.findSpot(row - 1, column - 1));
+        }
+        if (row > 0) {
+            spots.push(this.findSpot(row - 1, column));
+        }
+        if (row > 0 && column + 1 < this.width) {
+            spots.push(this.findSpot(row - 1, column + 1));
+        }
+        if (column > 0) {
+            spots.push(this.findSpot(row, column - 1));
+        }
+        spots.push(this.findSpot(row, column));
+        if (column + 1 < this.width) {
+            spots.push(this.findSpot(row, column + 1));
+        }
+        if (row + 1 < this.height && column > 0) {
+            spots.push(this.findSpot(row + 1, column - 1));
+        }
+        if (row + 1 < this.height) {
+            spots.push(this.findSpot(row + 1, column));
+        }
+        if (row + 1 < this.height && column + 1 < this.width) {
+            spots.push(this.findSpot(row + 1, column + 1));
+        }
+        return spots;
     };
     return Game;
 }());
@@ -740,6 +775,12 @@ var Spot = /** @class */ (function () {
     function Spot(value) {
         this.value = value;
     }
+    Spot.prototype.fill = function () {
+        this.filled = true;
+    };
+    Spot.prototype.unfill = function () {
+        this.filled = false;
+    };
     return Spot;
 }());
 exports.Spot = Spot;
