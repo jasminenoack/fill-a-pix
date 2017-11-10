@@ -6,6 +6,10 @@ $related: #6e3667;
 $unfilled: #535353;
 $filled: #88d317;
 
+body {
+    text-align: center;
+}
+
 .clear:after {
     display: block;
     content: "";

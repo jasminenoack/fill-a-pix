@@ -121,10 +121,12 @@ function drawBoard(wrapper, currentGame, currentSolve) {
         wrapper.appendChild(rowDiv);
     }
 }
+var defaultPuzzle = puzzles.ultraEasy1;
+var puzzleName = window.location.search.split("p=")[1].split("&")[0];
 var puzzle = document.getElementById("puzzle");
 var start = document.getElementById("start");
 var step = document.getElementById("step");
-var game = new game_1.Game(puzzles.veryEasy2);
+var game = new game_1.Game(puzzles[puzzleName] || defaultPuzzle);
 var solve = new solve_1.Solve(game);
 var boardWrapper = document.createElement("div");
 boardWrapper.classList.add("wrapper");
@@ -568,7 +570,7 @@ exports = module.exports = __webpack_require__(8)(undefined);
 
 
 // module
-exports.push([module.i, ".clear:after {\n  display: block;\n  content: \"\";\n  clear: both; }\n\n.square {\n  border: 1px solid black;\n  float: left;\n  box-sizing: border-box;\n  text-align: center;\n  font-size: 30px; }\n\n.wrapper {\n  border: 4px solid black;\n  margin: 50px auto; }\n\n.active {\n  border: 5px solid #1a0315; }\n\n.related {\n  border: 5px solid #6e3667; }\n\n.unfilled {\n  background: #535353; }\n\n.filled {\n  background: #88d317; }\n", ""]);
+exports.push([module.i, "body {\n  text-align: center; }\n\n.clear:after {\n  display: block;\n  content: \"\";\n  clear: both; }\n\n.square {\n  border: 1px solid black;\n  float: left;\n  box-sizing: border-box;\n  text-align: center;\n  font-size: 30px; }\n\n.wrapper {\n  border: 4px solid black;\n  margin: 50px auto; }\n\n.active {\n  border: 5px solid #1a0315; }\n\n.related {\n  border: 5px solid #6e3667; }\n\n.unfilled {\n  background: #535353; }\n\n.filled {\n  background: #88d317; }\n", ""]);
 
 // exports
 
