@@ -3,13 +3,13 @@ import { Spot } from "../src/spot";
 describe("spot", () => {
     let spot;
     beforeEach(() => {
-        spot = new Spot();
+        spot = new Spot(undefined, 0);
     });
 
     it("has a value", () => {
         expect(spot.value).toEqual(undefined);
 
-        spot = new Spot(5);
+        spot = new Spot(5, 0);
         expect(spot.value).toEqual(5);
     });
 
@@ -25,13 +25,5 @@ describe("spot", () => {
     it("should be able to be unfilled", () => {
         spot.unfill();
         expect(spot.filled).toEqual(false);
-    });
-
-    describe("left over", () => {
-        xit("should ...", () => {
-            // - - - -
-            // - 2 5 -
-            // - - - -
-        });
     });
 });

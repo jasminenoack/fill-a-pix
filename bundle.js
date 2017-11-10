@@ -180,7 +180,7 @@ var Game = /** @class */ (function () {
         this.spots = [];
         for (var i = 0; i < this.height * this.width; i++) {
             var coors = this.findCoors(i);
-            this.spots.push(new spot_1.Spot(config.values[i], coors[0], coors[1]));
+            this.spots.push(new spot_1.Spot(config.values[i], i, coors[0], coors[1]));
         }
     }
     Game.prototype.findIndex = function (row, column) {
@@ -323,8 +323,11 @@ exports.Game = Game;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var Spot = /** @class */ (function () {
-    function Spot(value, row, column) {
+    function Spot(value, index, row, column) {
         this.value = value;
+        this.index = index;
+        this.row = row;
+        this.column = column;
     }
     Spot.prototype.fill = function () {
         this.filled = true;
@@ -411,6 +414,7 @@ var steps;
 (function (steps) {
     steps["checkIfFillAll"] = "checkIfFillAll";
     steps["checkIfUnFillAll"] = "checkIfUnfillAll";
+    steps["leftOver"] = "leftOver";
 })(steps || (steps = {}));
 var checkAllPhases;
 (function (checkAllPhases) {
@@ -418,7 +422,7 @@ var checkAllPhases;
     checkAllPhases[checkAllPhases["findValues"] = 1] = "findValues";
     checkAllPhases[checkAllPhases["editGame"] = 2] = "editGame";
 })(checkAllPhases || (checkAllPhases = {}));
-var STEPS = [steps.checkIfFillAll, steps.checkIfUnFillAll];
+var STEPS = [steps.checkIfFillAll, steps.checkIfUnFillAll, steps.leftOver];
 var Solve = /** @class */ (function () {
     function Solve(game) {
         this.game = game;
@@ -447,16 +451,19 @@ var Solve = /** @class */ (function () {
         else if (step === steps.checkIfUnFillAll) {
             this.unfillAllStep();
         }
+        else if (step === steps.leftOver) {
+            this.leftOverStep();
+        }
     };
     Solve.prototype.nextStep = function () {
         this.phase = 0;
         this.data = {};
-        delete this.active;
         this.related = [];
         this.fill = [];
         this.unfill = [];
         this.steps.shift();
         if (!this.steps.length) {
+            delete this.active;
             delete this.row;
             delete this.column;
             this.steps = STEPS.slice();
@@ -574,6 +581,91 @@ var Solve = /** @class */ (function () {
                 (" is not equal to the value(" + value + ").");
             this.nextStep();
         }
+    };
+    /**********************************************************
+     * Left Over
+     **********************************************************/
+    Solve.prototype.leftOverStep = function () {
+        this.desc = "Left over: ";
+        if (this.phase === checkAllPhases.findAssociatedState) {
+            this.leftOverFindAssociated();
+        }
+        else if (this.phase === checkAllPhases.findValues) {
+            this.leftFindValues();
+        }
+        else {
+            this.desc += "Filled cells " + this.fill.join(", ") + ".";
+            this.fillCells();
+            this.nextStep();
+        }
+    };
+    Solve.prototype.leftOverFindAssociated = function () {
+        this.neighbors = this.game.neighbors(this.row, this.column);
+        this.farNeighbors = this.game.farNeighbors(this.row, this.column);
+        var neighIndexes = this.neighbors.map(function (spot) { return spot.index; });
+        var farNeighIndexes = this.farNeighbors.map(function (spot) { return spot.index; });
+        this.active = this.game.findIndex(this.row, this.column);
+        this.related = neighIndexes.concat(farNeighIndexes).sort(function (a, b) { return a < b ? -1 : 1; });
+        this.desc += "For cell " + this.row + ", " + this.column + "." +
+            (" Neighbors are " + neighIndexes.join(", ") + ". ") +
+            ("Far neighbors are " + farNeighIndexes.join(", ") + ". ") +
+            "Attempting to find overlaps that indicate places that can be filled in.";
+        this.phase++;
+    };
+    Solve.prototype.leftFindValues = function () {
+        var _this = this;
+        var desc = "For cell " + this.row + ", " + this.column + ".";
+        var currentSpot = this.game.spots[this.active];
+        var compareSpots = this.related;
+        var fillSpots = [];
+        this.neighbors.forEach(function (spot) {
+            desc = _this.leftFindFillSpots(fillSpots, currentSpot, spot, desc);
+        });
+        this.farNeighbors.forEach(function (spot) {
+            desc = _this.leftFindFillSpots(fillSpots, currentSpot, spot, desc);
+        });
+        this.fill = fillSpots.map(function (comp) { return comp.index; }).sort(function (a, b) { return a < b ? -1 : 1; });
+        if (this.fill.length) {
+            desc += " We can fill the unfilled & unshared cells.";
+            this.phase++;
+        }
+        else {
+            this.nextStep();
+            desc += " Found no meaningful overlap.";
+        }
+        this.desc += desc;
+    };
+    Solve.prototype.leftFindFillSpots = function (fillSpots, currentSpot, spot, desc) {
+        var shared = this.game.shared([this.row, this.column], [spot.row, spot.column]);
+        var sharedState = this.game.currentState(shared);
+        var sharedCount = shared.length;
+        var associated = this.game.associated(this.row, this.column);
+        var associatedCount = associated.length;
+        var currentState = this.game.associatedState(this.row, this.column);
+        var currentValue = currentSpot.value;
+        var otherState = this.game.associatedState(spot.row, spot.column);
+        var otherValue = this.game.get(spot.row, spot.column);
+        // determine the number that could be filled in the overlap;
+        var filledShared = sharedState.filled;
+        var otherFilled = otherState.filled;
+        var outSideFilled = otherFilled - filledShared;
+        var sharedPossibleOther = Math.min(sharedCount, otherValue - outSideFilled);
+        var outer = [];
+        if (currentValue - sharedPossibleOther === associatedCount - sharedCount) {
+            associated.forEach(function (comp) {
+                if (shared.indexOf(comp) === -1 && comp.filled === undefined) {
+                    outer.push(comp.index);
+                    if (fillSpots.indexOf(comp) === -1) {
+                        fillSpots.push(comp);
+                    }
+                }
+            });
+        }
+        if (outer.length) {
+            desc += " Found meaningful overlap with " + spot.row + ", " + spot.column
+                + ("(unshared: " + outer.join(", ") + ").");
+        }
+        return desc;
     };
     return Solve;
 }());

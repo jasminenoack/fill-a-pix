@@ -18,7 +18,7 @@ export class Game {
 
         for (let i = 0; i < this.height * this.width; i++) {
             const coors = this.findCoors(i);
-            this.spots.push(new Spot(config.values[i], coors[0], coors[1]));
+            this.spots.push(new Spot(config.values[i], i, coors[0], coors[1]));
         }
     }
 

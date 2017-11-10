@@ -15,6 +15,7 @@ module.exports = function (config) {
         webpack: webpackConfig,
 
         reporters: ["spec"],
+        // reporters: ["dots"],
 
         browsers: ["ChromeHeadless"],
 

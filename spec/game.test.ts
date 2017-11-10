@@ -19,35 +19,35 @@ describe("game", () => {
 
     it("should have a board", () => {
         expect(game.spots).toEqual([
-            new Spot(),
-            new Spot(5),
-            new Spot(4),
-            new Spot(),
-            new Spot(),
+            new Spot(undefined, 0, 0, 0),
+            new Spot(5, 1, 0, 1),
+            new Spot(4, 2, 0, 2),
+            new Spot(undefined, 3, 0, 3),
+            new Spot(undefined, 4, 0, 4),
 
-            new Spot(),
-            new Spot(),
-            new Spot(),
-            new Spot(),
-            new Spot(3),
+            new Spot(undefined, 5, 1, 0),
+            new Spot(undefined, 6, 1, 1),
+            new Spot(undefined, 7, 1, 2),
+            new Spot(undefined, 8, 1, 3),
+            new Spot(3, 9, 1, 4),
 
-            new Spot(),
-            new Spot(5),
-            new Spot(6),
-            new Spot(),
-            new Spot(5),
+            new Spot(undefined, 10, 2, 0),
+            new Spot(5, 11, 2, 1),
+            new Spot(6, 12, 2, 2),
+            new Spot(undefined, 13, 2, 3),
+            new Spot(5, 14, 2, 4),
 
-            new Spot(0),
-            new Spot(2),
-            new Spot(5),
-            new Spot(),
-            new Spot(5),
+            new Spot(0, 15, 3, 0),
+            new Spot(2, 16, 3, 1),
+            new Spot(5, 17, 3, 2),
+            new Spot(undefined, 18, 3, 3),
+            new Spot(5, 19, 3, 4),
 
-            new Spot(),
-            new Spot(),
-            new Spot(),
-            new Spot(),
-            new Spot(),
+            new Spot(undefined, 20, 4, 0),
+            new Spot(undefined, 21, 4, 1),
+            new Spot(undefined, 22, 4, 2),
+            new Spot(undefined, 23, 4, 3),
+            new Spot(undefined, 24, 4, 4),
         ]);
     });
 
@@ -618,8 +618,8 @@ describe("game", () => {
             it("shares bottom 2 right 1", () => {
                 const spots = game.spots;
                 expect(game.shared([2, 2], [3, 4])).toEqual([
-                    spots[8],
                     spots[13],
+                    spots[18],
                 ]);
             });
 
