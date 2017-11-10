@@ -49,7 +49,7 @@ function drawBoard(wrapper: HTMLElement, currentGame: Game, currentSolve: Solve)
 const puzzle = document.getElementById("puzzle");
 const start = document.getElementById("start");
 const step = document.getElementById("step");
-const game = new Game(puzzles.ultraEasy1);
+const game = new Game(puzzles.veryEasy2);
 const solve = new Solve(game);
 const boardWrapper = document.createElement("div");
 boardWrapper.classList.add("wrapper");
@@ -57,6 +57,7 @@ drawBoard(boardWrapper, game, solve);
 puzzle.innerHTML = "";
 puzzle.appendChild(boardWrapper);
 
+let interval;
 start.addEventListener("click", () => {
     function makeStep() {
         solve.takeStep();
@@ -68,8 +69,17 @@ start.addEventListener("click", () => {
         puzzle.appendChild(wrapper);
         if (game.done()) {
             clearInterval(interval);
+            console.log(JSON.stringify(game.spots.map((spot) => {
+                return spot.filled;
+            })));
         }
     }
-    makeStep();
-    const interval = setInterval(makeStep, 300);
+    if (interval) {
+        clearInterval(interval);
+        interval = null;
+        return;
+    } else {
+        makeStep();
+        interval = setInterval(makeStep, 100);
+    }
 });

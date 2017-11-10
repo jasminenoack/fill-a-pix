@@ -68,7 +68,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(1);
-module.exports = __webpack_require__(2);
+module.exports = __webpack_require__(6);
 
 
 /***/ }),
@@ -78,9 +78,9 @@ module.exports = __webpack_require__(2);
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var game_1 = __webpack_require__(7);
-var puzzles = __webpack_require__(9);
-var solve_1 = __webpack_require__(10);
+var game_1 = __webpack_require__(2);
+var puzzles = __webpack_require__(4);
+var solve_1 = __webpack_require__(5);
 var SPOT_DIMENSION = 40;
 function drawBoard(wrapper, currentGame, currentSolve) {
     wrapper.style.width = currentGame.width * SPOT_DIMENSION + "px";
@@ -124,13 +124,14 @@ function drawBoard(wrapper, currentGame, currentSolve) {
 var puzzle = document.getElementById("puzzle");
 var start = document.getElementById("start");
 var step = document.getElementById("step");
-var game = new game_1.Game(puzzles.ultraEasy1);
+var game = new game_1.Game(puzzles.veryEasy2);
 var solve = new solve_1.Solve(game);
 var boardWrapper = document.createElement("div");
 boardWrapper.classList.add("wrapper");
 drawBoard(boardWrapper, game, solve);
 puzzle.innerHTML = "";
 puzzle.appendChild(boardWrapper);
+var interval;
 start.addEventListener("click", function () {
     function makeStep() {
         solve.takeStep();
@@ -142,10 +143,20 @@ start.addEventListener("click", function () {
         puzzle.appendChild(wrapper);
         if (game.done()) {
             clearInterval(interval);
+            console.log(JSON.stringify(game.spots.map(function (spot) {
+                return spot.filled;
+            })));
         }
     }
-    makeStep();
-    var interval = setInterval(makeStep, 300);
+    if (interval) {
+        clearInterval(interval);
+        interval = null;
+        return;
+    }
+    else {
+        makeStep();
+        interval = setInterval(makeStep, 100);
+    }
 });
 
 
@@ -153,10 +164,378 @@ start.addEventListener("click", function () {
 /* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var spot_1 = __webpack_require__(3);
+var Game = /** @class */ (function () {
+    function Game(config) {
+        this.height = config.height;
+        this.width = config.width;
+        this.spots = [];
+        for (var i = 0; i < this.height * this.width; i++) {
+            this.spots.push(new spot_1.Spot(config.values[i]));
+        }
+    }
+    Game.prototype.findIndex = function (row, column) {
+        return row * this.width + column;
+    };
+    Game.prototype.findSpot = function (row, column) {
+        return this.spots[this.findIndex(row, column)];
+    };
+    Game.prototype.get = function (row, column) {
+        return this.findSpot(row, column).value;
+    };
+    Game.prototype.getAssociatedIndexes = function (row, column) {
+        var ids = [];
+        if (row > 0 && column > 0) {
+            ids.push(this.findIndex(row - 1, column - 1));
+        }
+        if (row > 0) {
+            ids.push(this.findIndex(row - 1, column));
+        }
+        if (row > 0 && column + 1 < this.width) {
+            ids.push(this.findIndex(row - 1, column + 1));
+        }
+        if (column > 0) {
+            ids.push(this.findIndex(row, column - 1));
+        }
+        ids.push(this.findIndex(row, column));
+        if (column + 1 < this.width) {
+            ids.push(this.findIndex(row, column + 1));
+        }
+        if (row + 1 < this.height && column > 0) {
+            ids.push(this.findIndex(row + 1, column - 1));
+        }
+        if (row + 1 < this.height) {
+            ids.push(this.findIndex(row + 1, column));
+        }
+        if (row + 1 < this.height && column + 1 < this.width) {
+            ids.push(this.findIndex(row + 1, column + 1));
+        }
+        return ids;
+    };
+    Game.prototype.getAssociatedUnknownIndexes = function (row, column) {
+        var _this = this;
+        return this.getAssociatedIndexes(row, column).filter(function (index) {
+            return _this.spots[index].filled === undefined;
+        });
+    };
+    Game.prototype.associated = function (row, column) {
+        var _this = this;
+        var ids = this.getAssociatedIndexes(row, column);
+        return ids.map(function (id) {
+            return _this.spots[id];
+        });
+    };
+    Game.prototype.currentState = function (spots) {
+        var result = {
+            filled: 0,
+            unfilled: 0,
+            unknown: 0,
+        };
+        spots.forEach(function (spot) {
+            if (spot.filled === true) {
+                result.filled++;
+            }
+            else if (spot.filled === false) {
+                result.unfilled++;
+            }
+            else {
+                result.unknown++;
+            }
+        });
+        return result;
+    };
+    Game.prototype.associatedState = function (row, column) {
+        return this.currentState(this.associated(row, column));
+    };
+    Game.prototype.getUnknown = function () {
+        return this.spots.filter(function (spot) {
+            return spot.filled === undefined;
+        });
+    };
+    Game.prototype.done = function () {
+        return !this.getUnknown().length;
+    };
+    return Game;
+}());
+exports.Game = Game;
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var Spot = /** @class */ (function () {
+    function Spot(value) {
+        this.value = value;
+    }
+    Spot.prototype.fill = function () {
+        this.filled = true;
+    };
+    Spot.prototype.unfill = function () {
+        this.filled = false;
+    };
+    return Spot;
+}());
+exports.Spot = Spot;
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var u = undefined;
+exports.ultraEasy1 = {
+    height: 5,
+    values: [
+        u, 5, 4, u, u,
+        u, u, u, u, 3,
+        u, 5, 6, u, 5,
+        0, 2, 5, u, 5,
+        u, u, u, u, u,
+    ],
+    width: 5,
+};
+exports.veryEasy1 = {
+    height: 15,
+    values: [
+        0, u, u, u, u, u, 5, 6, u, u,
+        u, 2, u, 3, u, u, u, 8, 9, u,
+        u, u, 3, u, 2, 2, u, 7, 8, 6,
+        0, u, u, 3, 2, u, 3, 4, u, 5,
+        u, 1, 2, u, u, 3, u, u, u, 3,
+        u, u, u, 5, 5, 5, u, u, u, u,
+        3, u, 3, 4, u, 4, 3, 4, 3, u,
+        4, u, 6, u, u, u, 6, u, u, u,
+        u, u, 5, 6, u, 5, 4, u, u, 1,
+        u, u, 6, 7, u, u, 5, u, u, u,
+        0, u, u, u, 5, 4, u, u, 0, u,
+        u, 0, u, 3, 4, u, u, u, u, u,
+        u, 0, u, u, 3, 3, 0, u, u, u,
+        u, u, u, u, 5, u, u, u, 0, u,
+        0, 1, u, u, u, 4, u, u, u, u,
+    ],
+    width: 10,
+};
+exports.veryEasy2 = {
+    height: 15,
+    values: [
+        u, 4, u, u, 0, 0, u, u, 4, u,
+        4, u, u, u, 3, 3, u, u, u, 4,
+        u, u, 4, 5, 3, u, 5, 4, u, 3,
+        3, u, 3, u, u, 3, u, u, u, u,
+        2, u, 3, 3, u, 2, 3, 4, 4, u,
+        u, u, 4, 3, 4, 3, 4, u, 5, u,
+        u, 2, u, u, u, 4, u, 4, u, u,
+        1, 2, u, u, u, 4, u, 3, u, u,
+        u, u, 2, 5, u, u, 2, u, u, 4,
+        u, u, u, 4, 4, 4, u, 4, u, u,
+        5, u, u, u, 6, u, u, 4, 4, u,
+        5, u, 6, 6, 6, 5, 5, u, u, u,
+        4, u, 6, 6, 6, 6, 5, u, u, u,
+        u, u, u, u, u, 3, u, u, 4, u,
+        2, u, 2, 1, 0, u, u, 4, u, u,
+    ],
+    width: 10,
+};
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var steps;
+(function (steps) {
+    steps["checkIfFillAll"] = "checkIfFillAll";
+    steps["checkIfUnFillAll"] = "checkIfUnfillAll";
+})(steps || (steps = {}));
+var checkAllPhases;
+(function (checkAllPhases) {
+    checkAllPhases[checkAllPhases["findAssociatedState"] = 0] = "findAssociatedState";
+    checkAllPhases[checkAllPhases["findValues"] = 1] = "findValues";
+    checkAllPhases[checkAllPhases["editGame"] = 2] = "editGame";
+})(checkAllPhases || (checkAllPhases = {}));
+var STEPS = [steps.checkIfFillAll, steps.checkIfUnFillAll];
+var Solve = /** @class */ (function () {
+    function Solve(game) {
+        this.game = game;
+        this.phase = 0;
+        this.desc = "";
+        this.data = {};
+        this.init(game);
+    }
+    Solve.prototype.init = function (game) {
+        this.coordinates = [];
+        for (var row = 0; row < game.height; row++) {
+            for (var column = 0; column < game.width; column++) {
+                if (game.get(row, column) !== undefined && game.getAssociatedUnknownIndexes(row, column).length) {
+                    this.coordinates.push([row, column]);
+                }
+            }
+        }
+        this.steps = STEPS.slice();
+    };
+    Solve.prototype.takeStep = function () {
+        this.desc = "";
+        var step = this.steps[0];
+        if (step === steps.checkIfFillAll) {
+            this.fillAllStep();
+        }
+        else if (step === steps.checkIfUnFillAll) {
+            this.unfillAllStep();
+        }
+    };
+    Solve.prototype.nextStep = function () {
+        this.phase = 0;
+        this.data = {};
+        delete this.active;
+        this.related = [];
+        this.fill = [];
+        this.unfill = [];
+        this.steps.shift();
+        if (!this.steps.length) {
+            delete this.row;
+            delete this.column;
+            this.steps = STEPS.slice();
+            // just loop for now.
+            if (!this.coordinates.length) {
+                this.init(this.game);
+            }
+        }
+    };
+    Solve.prototype.fillCells = function () {
+        var _this = this;
+        this.fill.forEach(function (index) {
+            _this.game.spots[index].filled = true;
+        });
+    };
+    Solve.prototype.unfillCells = function () {
+        var _this = this;
+        this.unfill.forEach(function (index) {
+            _this.game.spots[index].filled = false;
+        });
+    };
+    /**********************************************************
+     * Fill All
+     **********************************************************/
+    Solve.prototype.fillAllStep = function () {
+        this.desc = "Fill all step: ";
+        if (this.phase === checkAllPhases.findAssociatedState) {
+            _a = this.coordinates.shift(), this.row = _a[0], this.column = _a[1];
+            this.findAssociatedFillState();
+        }
+        else if (this.phase === checkAllPhases.findValues) {
+            this.checkAllFill();
+        }
+        else {
+            this.desc += "Filled cells " + this.fill.join(", ") + ".";
+            this.fillCells();
+            this.nextStep();
+        }
+        var _a;
+    };
+    Solve.prototype.findAssociatedFillState = function (checkAllFill) {
+        var _this = this;
+        if (checkAllFill === void 0) { checkAllFill = true; }
+        this.data.associatedState = this.game.associatedState(this.row, this.column);
+        this.active = this.game.findIndex(this.row, this.column);
+        this.related = this.game.getAssociatedIndexes(this.row, this.column).filter(function (id) { return id !== _this.active; });
+        if (checkAllFill && this.data.associatedState.filled === this.game.get(this.row, this.column)) {
+            this.desc += "Skipping cell " + this.row + ", " + this.column + ". " +
+                "Already filled.";
+            this.nextStep();
+        }
+        else if (!this.data.associatedState.unknown) {
+            this.desc += "Skipping cell " + this.row + ", " + this.column + ". " +
+                "No Unknown cells.";
+            this.nextStep();
+        }
+        else {
+            this.desc += "For cell " + this.row + ", " + this.column + "." +
+                (" There are " + this.data.associatedState.filled + " filled cells, ") +
+                (this.data.associatedState.unfilled + " unfilled cells, ") +
+                ("and " + this.data.associatedState.unknown + " unknown cells.");
+            this.phase++;
+        }
+    };
+    Solve.prototype.checkAllFill = function () {
+        var state = this.data.associatedState;
+        var filled = state.filled;
+        var totalAvailable = state.unknown + state.filled;
+        var value = this.game.get(this.row, this.column);
+        if (totalAvailable === value) {
+            this.desc += "For cell " + this.row + ", " + this.column + ". " +
+                ("The number of filled + unknown cells(" + totalAvailable + ")") +
+                (" equals the value(" + value + ")") +
+                ", so we can fill all unknown cells.";
+            this.fill = this.game.getAssociatedUnknownIndexes(this.row, this.column);
+            this.phase++;
+        }
+        else {
+            this.desc += "For cell " + this.row + ", " + this.column + ". " +
+                ("The number of filled + unknown cells(" + totalAvailable + ")") +
+                (" is not equal to the value(" + value + ").");
+            this.nextStep();
+        }
+    };
+    /**********************************************************
+     * Unfill All
+     **********************************************************/
+    Solve.prototype.unfillAllStep = function () {
+        this.desc = "Unfill all step: ";
+        if (this.phase === checkAllPhases.findAssociatedState) {
+            this.findAssociatedFillState(false);
+        }
+        else if (this.phase === checkAllPhases.findValues) {
+            this.checkAllUnfill();
+        }
+        else {
+            this.desc += "Unfilled cells " + this.unfill.join(", ") + ".";
+            this.unfillCells();
+            this.nextStep();
+        }
+    };
+    Solve.prototype.checkAllUnfill = function () {
+        var state = this.data.associatedState;
+        var filled = state.filled;
+        var value = this.game.get(this.row, this.column);
+        if (filled === value) {
+            this.desc += "For cell " + this.row + ", " + this.column + ". " +
+                "All cells filled. Unfilling unknown cells.";
+            this.unfill = this.game.getAssociatedUnknownIndexes(this.row, this.column);
+            this.phase++;
+        }
+        else {
+            this.desc += "For cell " + this.row + ", " + this.column + ". " +
+                ("The number of filled cells(" + filled + ")") +
+                (" is not equal to the value(" + value + ").");
+            this.nextStep();
+        }
+    };
+    return Solve;
+}());
+exports.Solve = Solve;
+
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(3);
+var content = __webpack_require__(7);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -164,7 +543,7 @@ var transform;
 var options = {"hmr":true}
 options.transform = transform
 // add the styles to the DOM
-var update = __webpack_require__(5)(content, options);
+var update = __webpack_require__(9)(content, options);
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
@@ -181,21 +560,21 @@ if(false) {
 }
 
 /***/ }),
-/* 3 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(4)(undefined);
+exports = module.exports = __webpack_require__(8)(undefined);
 // imports
 
 
 // module
-exports.push([module.i, ".clear:after {\n  display: block;\n  content: \"\";\n  clear: both; }\n\n.square {\n  border: 1px solid black;\n  float: left;\n  box-sizing: border-box;\n  text-align: center;\n  font-size: 30px; }\n\n.wrapper {\n  border: 4px solid black;\n  margin: 50px auto; }\n\n.active {\n  border: 5px solid yellow; }\n\n.related {\n  border: 5px solid lime; }\n\n.unfilled {\n  background: grey; }\n\n.filled {\n  background: blue; }\n", ""]);
+exports.push([module.i, ".clear:after {\n  display: block;\n  content: \"\";\n  clear: both; }\n\n.square {\n  border: 1px solid black;\n  float: left;\n  box-sizing: border-box;\n  text-align: center;\n  font-size: 30px; }\n\n.wrapper {\n  border: 4px solid black;\n  margin: 50px auto; }\n\n.active {\n  border: 5px solid #1a0315; }\n\n.related {\n  border: 5px solid #6e3667; }\n\n.unfilled {\n  background: #535353; }\n\n.filled {\n  background: #88d317; }\n", ""]);
 
 // exports
 
 
 /***/ }),
-/* 4 */
+/* 8 */
 /***/ (function(module, exports) {
 
 /*
@@ -277,7 +656,7 @@ function toComment(sourceMap) {
 
 
 /***/ }),
-/* 5 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -333,7 +712,7 @@ var singleton = null;
 var	singletonCounter = 0;
 var	stylesInsertedAtTop = [];
 
-var	fixUrls = __webpack_require__(6);
+var	fixUrls = __webpack_require__(10);
 
 module.exports = function(list, options) {
 	if (typeof DEBUG !== "undefined" && DEBUG) {
@@ -649,7 +1028,7 @@ function updateLink (link, options, obj) {
 
 
 /***/ }),
-/* 6 */
+/* 10 */
 /***/ (function(module, exports) {
 
 
@@ -741,335 +1120,6 @@ module.exports = function (css) {
 	// send back the fixed css
 	return fixedCss;
 };
-
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var spot_1 = __webpack_require__(8);
-var Game = /** @class */ (function () {
-    function Game(config) {
-        this.height = config.height;
-        this.width = config.width;
-        this.spots = [];
-        for (var i = 0; i < this.height * this.width; i++) {
-            this.spots.push(new spot_1.Spot(config.values[i]));
-        }
-    }
-    Game.prototype.findIndex = function (row, column) {
-        return row * this.width + column;
-    };
-    Game.prototype.findSpot = function (row, column) {
-        return this.spots[this.findIndex(row, column)];
-    };
-    Game.prototype.get = function (row, column) {
-        return this.findSpot(row, column).value;
-    };
-    Game.prototype.getAssociatedIndexes = function (row, column) {
-        var ids = [];
-        if (row > 0 && column > 0) {
-            ids.push(this.findIndex(row - 1, column - 1));
-        }
-        if (row > 0) {
-            ids.push(this.findIndex(row - 1, column));
-        }
-        if (row > 0 && column + 1 < this.width) {
-            ids.push(this.findIndex(row - 1, column + 1));
-        }
-        if (column > 0) {
-            ids.push(this.findIndex(row, column - 1));
-        }
-        ids.push(this.findIndex(row, column));
-        if (column + 1 < this.width) {
-            ids.push(this.findIndex(row, column + 1));
-        }
-        if (row + 1 < this.height && column > 0) {
-            ids.push(this.findIndex(row + 1, column - 1));
-        }
-        if (row + 1 < this.height) {
-            ids.push(this.findIndex(row + 1, column));
-        }
-        if (row + 1 < this.height && column + 1 < this.width) {
-            ids.push(this.findIndex(row + 1, column + 1));
-        }
-        return ids;
-    };
-    Game.prototype.getAssociatedUnknownIndexes = function (row, column) {
-        var _this = this;
-        return this.getAssociatedIndexes(row, column).filter(function (index) {
-            return _this.spots[index].filled === undefined;
-        });
-    };
-    Game.prototype.associated = function (row, column) {
-        var _this = this;
-        var ids = this.getAssociatedIndexes(row, column);
-        return ids.map(function (id) {
-            return _this.spots[id];
-        });
-    };
-    Game.prototype.currentState = function (spots) {
-        var result = {
-            filled: 0,
-            unfilled: 0,
-            unknown: 0,
-        };
-        spots.forEach(function (spot) {
-            if (spot.filled === true) {
-                result.filled++;
-            }
-            else if (spot.filled === false) {
-                result.unfilled++;
-            }
-            else {
-                result.unknown++;
-            }
-        });
-        return result;
-    };
-    Game.prototype.associatedState = function (row, column) {
-        return this.currentState(this.associated(row, column));
-    };
-    Game.prototype.getUnknown = function () {
-        return this.spots.filter(function (spot) {
-            return spot.filled === undefined;
-        });
-    };
-    Game.prototype.done = function () {
-        return !this.getUnknown().length;
-    };
-    return Game;
-}());
-exports.Game = Game;
-
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var Spot = /** @class */ (function () {
-    function Spot(value) {
-        this.value = value;
-    }
-    Spot.prototype.fill = function () {
-        this.filled = true;
-    };
-    Spot.prototype.unfill = function () {
-        this.filled = false;
-    };
-    return Spot;
-}());
-exports.Spot = Spot;
-
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ultraEasy1 = {
-    height: 5,
-    values: [
-        ,
-        5, 4, , ,
-        ,
-        , , , 3,
-        ,
-        5, 6, , 5,
-        0, 2, 5, , 5,
-        ,
-        , , , ,
-    ],
-    width: 5,
-};
-
-
-/***/ }),
-/* 10 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var steps;
-(function (steps) {
-    steps["checkIfFillAll"] = "checkIfFillAll";
-    steps["checkIfUnFillAll"] = "checkIfUnfillAll";
-})(steps || (steps = {}));
-var checkAllPhases;
-(function (checkAllPhases) {
-    checkAllPhases[checkAllPhases["findAssociatedState"] = 0] = "findAssociatedState";
-    checkAllPhases[checkAllPhases["findValues"] = 1] = "findValues";
-    checkAllPhases[checkAllPhases["editGame"] = 2] = "editGame";
-})(checkAllPhases || (checkAllPhases = {}));
-var STEPS = [steps.checkIfFillAll, steps.checkIfUnFillAll];
-var Solve = /** @class */ (function () {
-    function Solve(game) {
-        this.game = game;
-        this.phase = 0;
-        this.desc = "";
-        this.data = {};
-        this.init(game);
-    }
-    Solve.prototype.init = function (game) {
-        this.coordinates = [];
-        for (var row = 0; row < game.height; row++) {
-            for (var column = 0; column < game.width; column++) {
-                if (game.get(row, column) !== undefined && game.getAssociatedUnknownIndexes(row, column).length) {
-                    this.coordinates.push([row, column]);
-                }
-            }
-        }
-        this.steps = STEPS.slice();
-    };
-    Solve.prototype.takeStep = function () {
-        this.desc = "";
-        var step = this.steps[0];
-        if (step === steps.checkIfFillAll) {
-            this.fillAllStep();
-        }
-        else if (step === steps.checkIfUnFillAll) {
-            this.unfillAllStep();
-        }
-    };
-    Solve.prototype.nextStep = function () {
-        this.phase = 0;
-        this.data = {};
-        delete this.active;
-        this.related = [];
-        this.fill = [];
-        this.unfill = [];
-        this.steps.shift();
-        if (!this.steps.length) {
-            delete this.row;
-            delete this.column;
-            this.steps = STEPS.slice();
-            // just loop for now.
-            if (!this.coordinates.length) {
-                this.init(this.game);
-            }
-        }
-    };
-    Solve.prototype.fillCells = function () {
-        var _this = this;
-        this.fill.forEach(function (index) {
-            _this.game.spots[index].filled = true;
-        });
-    };
-    Solve.prototype.unfillCells = function () {
-        var _this = this;
-        this.unfill.forEach(function (index) {
-            _this.game.spots[index].filled = false;
-        });
-    };
-    /**********************************************************
-     * Fill All
-     **********************************************************/
-    Solve.prototype.fillAllStep = function () {
-        this.desc = "Fill all step: ";
-        if (this.phase === checkAllPhases.findAssociatedState) {
-            _a = this.coordinates.shift(), this.row = _a[0], this.column = _a[1];
-            this.findAssociatedFillState();
-        }
-        else if (this.phase === checkAllPhases.findValues) {
-            this.checkAllFill();
-        }
-        else {
-            this.desc += "Filled cells " + this.fill.join(", ") + ".";
-            this.fillCells();
-            this.nextStep();
-        }
-        var _a;
-    };
-    Solve.prototype.findAssociatedFillState = function (checkAllFill) {
-        var _this = this;
-        if (checkAllFill === void 0) { checkAllFill = true; }
-        this.data.associatedState = this.game.associatedState(this.row, this.column);
-        this.active = this.game.findIndex(this.row, this.column);
-        this.related = this.game.getAssociatedIndexes(this.row, this.column).filter(function (id) { return id !== _this.active; });
-        if (checkAllFill && this.data.associatedState.filled === this.game.get(this.row, this.column)) {
-            this.desc += "Skipping cell " + this.row + ", " + this.column + ". " +
-                "Already filled.";
-            this.nextStep();
-        }
-        else if (!this.data.associatedState.unknown) {
-            this.desc += "Skipping cell " + this.row + ", " + this.column + ". " +
-                "No Unknown cells.";
-            this.nextStep();
-        }
-        else {
-            this.desc += "For cell " + this.row + ", " + this.column + "." +
-                (" There are " + this.data.associatedState.filled + " filled cells, ") +
-                (this.data.associatedState.unfilled + " unfilled cells, ") +
-                ("and " + this.data.associatedState.unknown + " unknown cells.");
-            this.phase++;
-        }
-    };
-    Solve.prototype.checkAllFill = function () {
-        var state = this.data.associatedState;
-        var filled = state.filled;
-        var totalAvailable = state.unknown + state.filled;
-        var value = this.game.get(this.row, this.column);
-        if (totalAvailable === value) {
-            this.desc += "For cell " + this.row + ", " + this.column + ". " +
-                ("The number of filled + unknown cells(" + totalAvailable + ")") +
-                (" equals the value(" + value + ")") +
-                ", so we can fill all unknown cells.";
-            this.fill = this.game.getAssociatedUnknownIndexes(this.row, this.column);
-            this.phase++;
-        }
-        else {
-            this.desc += "For cell " + this.row + ", " + this.column + ". " +
-                ("The number of filled + unknown cells(" + totalAvailable + ")") +
-                (" is not equal to the value(" + value + ").");
-            this.nextStep();
-        }
-    };
-    /**********************************************************
-     * Unfill All
-     **********************************************************/
-    Solve.prototype.unfillAllStep = function () {
-        this.desc = "Unfill all step: ";
-        if (this.phase === checkAllPhases.findAssociatedState) {
-            this.findAssociatedFillState(false);
-        }
-        else if (this.phase === checkAllPhases.findValues) {
-            this.checkAllUnfill();
-        }
-        else {
-            this.desc += "Unfilled cells " + this.unfill.join(", ") + ".";
-            this.unfillCells();
-            this.nextStep();
-        }
-    };
-    Solve.prototype.checkAllUnfill = function () {
-        var state = this.data.associatedState;
-        var filled = state.filled;
-        var value = this.game.get(this.row, this.column);
-        if (filled === value) {
-            this.desc += "For cell " + this.row + ", " + this.column + ". " +
-                "All cells filled. Unfilling unknown cells.";
-            this.unfill = this.game.getAssociatedUnknownIndexes(this.row, this.column);
-            this.phase++;
-        }
-        else {
-            this.desc += "For cell " + this.row + ", " + this.column + ". " +
-                ("The number of filled cells(" + filled + ")") +
-                (" is not equal to the value(" + value + ").");
-            this.nextStep();
-        }
-    };
-    return Solve;
-}());
-exports.Solve = Solve;
 
 
 /***/ })
