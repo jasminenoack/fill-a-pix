@@ -47,7 +47,12 @@ function drawBoard(wrapper: HTMLElement, currentGame: Game, currentSolve: Solve)
 }
 
 const defaultPuzzle = puzzles.ultraEasy1;
-const puzzleName = window.location.search.split("p=")[1].split("&")[0];
+const puzzleName = (
+    window.location.search
+    && window.location.search.split("p=")
+    && window.location.search.split("p=")[1]
+    && window.location.search.split("p=")[1].split("&")[0]
+);
 const puzzle = document.getElementById("puzzle");
 const start = document.getElementById("start");
 const step = document.getElementById("step");

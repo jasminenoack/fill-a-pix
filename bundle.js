@@ -122,7 +122,10 @@ function drawBoard(wrapper, currentGame, currentSolve) {
     }
 }
 var defaultPuzzle = puzzles.ultraEasy1;
-var puzzleName = window.location.search.split("p=")[1].split("&")[0];
+var puzzleName = (window.location.search
+    && window.location.search.split("p=")
+    && window.location.search.split("p=")[1]
+    && window.location.search.split("p=")[1].split("&")[0]);
 var puzzle = document.getElementById("puzzle");
 var start = document.getElementById("start");
 var step = document.getElementById("step");
