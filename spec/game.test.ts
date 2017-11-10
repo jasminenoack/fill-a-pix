@@ -299,4 +299,343 @@ describe("game", () => {
         spots[11].filled = false;
         expect(game.getUnknown().length).toEqual(23);
     });
+
+    describe("overlap numbers", () => {
+        describe("neighbors", () => {
+            it("top", () => {
+                const spots = game.spots;
+                expect(game.neighbors(0, 2)).toEqual([
+                    spots[1],
+                ]);
+            });
+
+            it("bottom", () => {
+                const spots = game.spots;
+                expect(game.neighbors(4, 2)).toEqual([
+                    spots[16], spots[17],
+                ]);
+            });
+
+            it("left", () => {
+                const spots = game.spots;
+                expect(game.neighbors(2, 0)).toEqual([
+                    spots[11],
+                    spots[15], spots[16],
+                ]);
+            });
+
+            it("right", () => {
+                const spots = game.spots;
+                expect(game.neighbors(2, 4)).toEqual([
+                    spots[9],
+                    spots[19],
+                ]);
+            });
+
+            it("top left", () => {
+                const spots = game.spots;
+                expect(game.neighbors(0, 0)).toEqual([
+                    spots[1],
+                ]);
+            });
+
+            it("top right", () => {
+                const spots = game.spots;
+                expect(game.neighbors(0, 4)).toEqual([
+                    spots[9],
+                ]);
+            });
+
+            it("bottom left", () => {
+                const spots = game.spots;
+                expect(game.neighbors(4, 0)).toEqual([
+                    spots[15], spots[16],
+
+                ]);
+            });
+
+            it("bottom right", () => {
+                const spots = game.spots;
+                expect(game.neighbors(4, 4)).toEqual([
+                    spots[19],
+                ]);
+            });
+
+            it("middle", () => {
+                const spots = game.spots;
+                expect(game.neighbors(2, 2)).toEqual([
+                    spots[11],
+                    spots[16], spots[17],
+                ]);
+            });
+
+        });
+
+        describe("far neighbors", () => {
+            it("top", () => {
+                const spots = game.spots;
+                expect(game.farNeighbors(0, 2)).toEqual([
+                    spots[9],
+                    spots[11], spots[12], spots[14],
+                ]);
+            });
+
+            it("bottom", () => {
+                const spots = game.spots;
+                expect(game.farNeighbors(4, 2)).toEqual([
+                    spots[11], spots[12], spots[14],
+                    spots[15], spots[19],
+                ]);
+            });
+
+            it("left", () => {
+                const spots = game.spots;
+                expect(game.farNeighbors(2, 0)).toEqual([
+                    spots[1], spots[2],
+                    spots[12],
+                    spots[17],
+                ]);
+            });
+
+            it("right", () => {
+                const spots = game.spots;
+                expect(game.farNeighbors(2, 4)).toEqual([
+                    spots[2],
+                    spots[12],
+                    spots[17],
+                ]);
+            });
+
+            it("top left", () => {
+                const spots = game.spots;
+                expect(game.farNeighbors(0, 0)).toEqual([
+                    spots[2],
+                    spots[11], spots[12],
+                ]);
+            });
+
+            it("top right", () => {
+                const spots = game.spots;
+                expect(game.farNeighbors(0, 4)).toEqual([
+                    spots[2],
+                    spots[12], spots[14],
+                ]);
+            });
+
+            it("bottom left", () => {
+                const spots = game.spots;
+                expect(game.farNeighbors(4, 0)).toEqual([
+                    spots[11], spots[12],
+                    spots[17],
+                ]);
+            });
+
+            it("bottom right", () => {
+                const spots = game.spots;
+                expect(game.farNeighbors(4, 4)).toEqual([
+                    spots[12], spots[14],
+                    spots[17],
+                ]);
+            });
+
+            it("middle", () => {
+                const spots = game.spots;
+                expect(game.farNeighbors(2, 2)).toEqual([
+                    spots[1], spots[2],
+                    spots[9],
+                    spots[14],
+                    spots[15], spots[19],
+                ]);
+            });
+
+        });
+
+        describe("find shared", () => {
+            it("shares top 2", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [1, 2])).toEqual([
+                    spots[6], spots[7], spots[8],
+                    spots[11], spots[12], spots[13],
+                ]);
+            });
+
+            it("shares top 1", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [0, 2])).toEqual([
+                    spots[6], spots[7], spots[8],
+                ]);
+            });
+
+            it("shares bottom 2", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [3, 2])).toEqual([
+                    spots[11], spots[12], spots[13],
+                    spots[16], spots[17], spots[18],
+                ]);
+            });
+
+            it("shares bottom 1", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [4, 2])).toEqual([
+                    spots[16], spots[17], spots[18],
+                ]);
+            });
+
+            it("shares left 2", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [2, 1])).toEqual([
+                    spots[6], spots[7],
+                    spots[11], spots[12],
+                    spots[16], spots[17],
+                ]);
+            });
+
+            it("shares left 1", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [2, 0])).toEqual([
+                    spots[6],
+                    spots[11],
+                    spots[16],
+                ]);
+            });
+
+            it("shares right 2", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [2, 3])).toEqual([
+                    spots[7], spots[8],
+                    spots[12], spots[13],
+                    spots[17], spots[18],
+                ]);
+            });
+
+            it("shares right 1", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [2, 4])).toEqual([
+                    spots[8],
+                    spots[13],
+                    spots[18],
+                ]);
+            });
+
+            it("shares top 2 left 2", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [1, 1])).toEqual([
+                    spots[6], spots[7],
+                    spots[11], spots[12],
+                ]);
+            });
+
+            it("shares top 2 left 1", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [1, 0])).toEqual([
+                    spots[6],
+                    spots[11],
+                ]);
+            });
+
+            it("shares top 1 left 2", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [0, 1])).toEqual([
+                    spots[6], spots[7],
+                ]);
+            });
+
+            it("shares top 1 left 1", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [0, 0])).toEqual([
+                    spots[6],
+                ]);
+            });
+
+            it("shares bottom 2 left 2", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [3, 1])).toEqual([
+                    spots[11], spots[12],
+                    spots[16], spots[17],
+                ]);
+            });
+
+            it("shares bottom 2 left 1", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [3, 0])).toEqual([
+                    spots[11],
+                    spots[16],
+                ]);
+            });
+
+            it("shares bottom 1 left 2", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [4, 1])).toEqual([
+                    spots[16], spots[17],
+                ]);
+            });
+
+            it("shares bottom 1 left 1", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [4, 0])).toEqual([
+                    spots[16],
+                ]);
+            });
+
+            it("shares top 2 right 2", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [1, 3])).toEqual([
+                    spots[7], spots[8],
+                    spots[12], spots[13],
+                ]);
+            });
+
+            it("shares top 2 right 1", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [1, 4])).toEqual([
+                    spots[8],
+                    spots[13],
+                ]);
+            });
+
+            it("shares top 1 right 2", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [0, 3])).toEqual([
+                    spots[7], spots[8],
+                ]);
+            });
+
+            it("shares top 1 right 1", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [0, 4])).toEqual([
+                    spots[8],
+                ]);
+            });
+
+            it("shares bottom 2 right 2", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [3, 3])).toEqual([
+                    spots[12], spots[13],
+                    spots[17], spots[18],
+                ]);
+            });
+
+            it("shares bottom 2 right 1", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [3, 4])).toEqual([
+                    spots[8],
+                    spots[13],
+                ]);
+            });
+
+            it("shares bottom 1 right 2", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [4, 3])).toEqual([
+                    spots[17], spots[18],
+                ]);
+            });
+
+            it("shares bottom 1 right 1", () => {
+                const spots = game.spots;
+                expect(game.shared([2, 2], [4, 4])).toEqual([
+                    spots[18],
+                ]);
+            });
+        });
+    });
 });

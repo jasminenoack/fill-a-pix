@@ -17,12 +17,17 @@ export class Game {
         this.spots = [];
 
         for (let i = 0; i < this.height * this.width; i++) {
-            this.spots.push(new Spot(config.values[i]));
+            const coors = this.findCoors(i);
+            this.spots.push(new Spot(config.values[i], coors[0], coors[1]));
         }
     }
 
     public findIndex(row: number, column: number) {
         return row * this.width + column;
+    }
+
+    public findCoors(index: number) {
+        return [Math.floor(index / this.width), index % this.width];
     }
 
     public findSpot(row: number, column: number) {
@@ -73,10 +78,61 @@ export class Game {
     }
 
     public associated(row: number, column: number) {
-        const ids = this.getAssociatedIndexes(row, column);
-        return ids.map((id) => {
+        const indexes = this.getAssociatedIndexes(row, column);
+        return this.spotsByIndex(indexes);
+    }
+
+    public spotsByIndex(indexes) {
+        return indexes.map((id) => {
             return this.spots[id];
         });
+    }
+
+    public numberedSpotsByIndex(indexes) {
+        return this.spotsByIndex(indexes).filter((spot) => spot.value !== undefined);
+    }
+
+    public neighborIndexes(row: number, column: number) {
+        const currentIndex = this.findIndex(row, column);
+        const indexes = this.getAssociatedIndexes(row, column);
+        return indexes.filter((index) => index !== currentIndex);
+    }
+
+    public neighbors(row: number, column: number) {
+        const indexes = this.neighborIndexes(row, column);
+        return this.numberedSpotsByIndex(indexes);
+    }
+
+    public farNeighborIndexes(row: number, column: number) {
+        const result = [];
+        const currentIndex = this.findIndex(row, column);
+        const neighbors = this.neighborIndexes(row, column);
+        neighbors.forEach((neighbor) => {
+            const coors = this.findCoors(neighbor);
+            const newNeighbors = this.neighborIndexes(coors[0], coors[1]);
+            newNeighbors.forEach((option) => {
+                if (
+                    option !== currentIndex &&
+                    neighbors.indexOf(option) === -1 &&
+                    result.indexOf(option) === -1
+                ) {
+                    result.push(option);
+                }
+            });
+        });
+        return result.sort((a, b) => a > b ? 1 : -1);
+    }
+
+    public farNeighbors(row: number, column: number) {
+        const indexes = this.farNeighborIndexes(row, column);
+        return this.numberedSpotsByIndex(indexes);
+    }
+
+    public shared(coors1, coors2) {
+        const indexes1 = this.getAssociatedIndexes(coors1[0], coors1[1]);
+        const indexes2 = this.getAssociatedIndexes(coors2[0], coors2[1]);
+        const indexes = indexes1.filter((index) => indexes2.indexOf(index) !== -1);
+        return this.spotsByIndex(indexes);
     }
 
     public currentState(spots: Spot[]) {

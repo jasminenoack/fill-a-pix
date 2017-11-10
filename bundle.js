@@ -179,11 +179,15 @@ var Game = /** @class */ (function () {
         this.width = config.width;
         this.spots = [];
         for (var i = 0; i < this.height * this.width; i++) {
-            this.spots.push(new spot_1.Spot(config.values[i]));
+            var coors = this.findCoors(i);
+            this.spots.push(new spot_1.Spot(config.values[i], coors[0], coors[1]));
         }
     }
     Game.prototype.findIndex = function (row, column) {
         return row * this.width + column;
+    };
+    Game.prototype.findCoors = function (index) {
+        return [Math.floor(index / this.width), index % this.width];
     };
     Game.prototype.findSpot = function (row, column) {
         return this.spots[this.findIndex(row, column)];
@@ -227,11 +231,54 @@ var Game = /** @class */ (function () {
         });
     };
     Game.prototype.associated = function (row, column) {
+        var indexes = this.getAssociatedIndexes(row, column);
+        return this.spotsByIndex(indexes);
+    };
+    Game.prototype.spotsByIndex = function (indexes) {
         var _this = this;
-        var ids = this.getAssociatedIndexes(row, column);
-        return ids.map(function (id) {
+        return indexes.map(function (id) {
             return _this.spots[id];
         });
+    };
+    Game.prototype.numberedSpotsByIndex = function (indexes) {
+        return this.spotsByIndex(indexes).filter(function (spot) { return spot.value !== undefined; });
+    };
+    Game.prototype.neighborIndexes = function (row, column) {
+        var currentIndex = this.findIndex(row, column);
+        var indexes = this.getAssociatedIndexes(row, column);
+        return indexes.filter(function (index) { return index !== currentIndex; });
+    };
+    Game.prototype.neighbors = function (row, column) {
+        var indexes = this.neighborIndexes(row, column);
+        return this.numberedSpotsByIndex(indexes);
+    };
+    Game.prototype.farNeighborIndexes = function (row, column) {
+        var _this = this;
+        var result = [];
+        var currentIndex = this.findIndex(row, column);
+        var neighbors = this.neighborIndexes(row, column);
+        neighbors.forEach(function (neighbor) {
+            var coors = _this.findCoors(neighbor);
+            var newNeighbors = _this.neighborIndexes(coors[0], coors[1]);
+            newNeighbors.forEach(function (option) {
+                if (option !== currentIndex &&
+                    neighbors.indexOf(option) === -1 &&
+                    result.indexOf(option) === -1) {
+                    result.push(option);
+                }
+            });
+        });
+        return result.sort(function (a, b) { return a > b ? 1 : -1; });
+    };
+    Game.prototype.farNeighbors = function (row, column) {
+        var indexes = this.farNeighborIndexes(row, column);
+        return this.numberedSpotsByIndex(indexes);
+    };
+    Game.prototype.shared = function (coors1, coors2) {
+        var indexes1 = this.getAssociatedIndexes(coors1[0], coors1[1]);
+        var indexes2 = this.getAssociatedIndexes(coors2[0], coors2[1]);
+        var indexes = indexes1.filter(function (index) { return indexes2.indexOf(index) !== -1; });
+        return this.spotsByIndex(indexes);
     };
     Game.prototype.currentState = function (spots) {
         var result = {
@@ -276,7 +323,7 @@ exports.Game = Game;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var Spot = /** @class */ (function () {
-    function Spot(value) {
+    function Spot(value, row, column) {
         this.value = value;
     }
     Spot.prototype.fill = function () {
